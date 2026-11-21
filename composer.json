@@ -1,13 +1,13 @@
 {
-	"name": "dconco/phpspa-react",
+	"name": "dconco/tools",
 	"type": "project",
-	"description": "Run React directly with PHP - No Node.js build step required for development",
+	"description": "DevVault — Professional Developer Utilities Suite built with phpspa-react by Dave Conco",
 	"prefer-stable": true,
 	"minimum-stability": "stable",
 	"license": "MIT",
-	"keywords": ["phpspa", "react", "vite"],
+	"keywords": ["phpspa", "react", "vite", "tools"],
 	"require": {
-		"dconco/phpspa": "^2.0"
+		"dconco/phpspa": "^2.1"
 	},
 	"scripts": {
 		"start": [

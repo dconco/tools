@@ -1,144 +1,135 @@
 import { useState, useEffect } from 'react'
-import { setState } from '@dconco/phpspa'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import phpspa from '@dconco/phpspa'
+import type { TabType, Toast } from './types'
+import { Header } from './components/Header'
+import { Footer } from './components/Footer'
+import { ToastContainer } from './components/ToastContainer'
+import { JsonFormatter } from './pages/JsonFormatter'
+import { JwtInspector } from './pages/JwtInspector'
+import { CodecTool } from './pages/CodecTool'
+import { CryptoTool } from './pages/CryptoTool'
+import { UuidGenerator } from './pages/UuidGenerator'
+import { TimestampConverter } from './pages/TimestampConverter'
 
-function App() {
-	const [count, setCount] = useState(0)
+function getPhpSpa(): any {
+	if (typeof window === 'undefined') return null
+	const w = window as any
+	return w.phpspa || (phpspa as any)?.default || phpspa
+}
+
+function resolveTabFromPath(pathname: string): TabType {
+	const clean = pathname.toLowerCase().replace(/\/$/, '')
+	if (clean === '/jwt') return 'jwt'
+	if (clean === '/codec' || clean === '/base64') return 'codec'
+	if (clean === '/crypto' || clean === '/hash') return 'crypto'
+	if (clean === '/uuid' || clean === '/tokens') return 'uuid'
+	if (clean === '/timestamp' || clean === '/epoch' || clean === '/time') return 'timestamp'
+	return 'json'
+}
+
+export default function App() {
+	const [activeTab, setActiveTab] = useState<TabType>(() => {
+		if (typeof window !== 'undefined') {
+			const meta = document.getElementById('route-meta')?.getAttribute('data-route') as TabType | null
+			if (meta && ['json', 'jwt', 'codec', 'crypto', 'uuid', 'timestamp'].includes(meta)) {
+				return meta
+			}
+			return resolveTabFromPath(window.location.pathname)
+		}
+		return 'json'
+	})
+
+	const [toasts, setToasts] = useState<Toast[]>([])
 
 	useEffect(() => {
-		// --- update default state from php ---
-		setState('counter', prev => {
-			setCount(prev ?? 0)
-		})
+		const syncRoute = () => {
+			const currentTab = resolveTabFromPath(window.location.pathname)
+			setActiveTab(currentTab)
+		}
 
-		const profileScript = document.getElementById('profile-script')
+		window.addEventListener('popstate', syncRoute)
 
-		if (profileScript) {
-			// --- This is Profile Route ---
-			alert(profileScript.textContent)
+		const handleLoad = (payload?: { route?: string }) => {
+			if (payload?.route) {
+				try {
+					const url = new URL(payload.route, window.location.origin)
+					setActiveTab(resolveTabFromPath(url.pathname))
+				} catch {
+					syncRoute()
+				}
+			} else {
+				syncRoute()
+			}
+		}
+
+		const spa = getPhpSpa()
+		if (spa && typeof spa.on === 'function') {
+			try {
+				spa.on('load', handleLoad)
+			} catch (err) {
+				console.warn('PhpSPA event registration:', err)
+			}
+		}
+
+		return () => {
+			window.removeEventListener('popstate', syncRoute)
+			if (spa && typeof spa.off === 'function') {
+				try {
+					spa.off('load', handleLoad)
+				} catch {}
+			}
 		}
 	}, [])
 
-	useEffect(() => {
-		setState('counter', count)
-	}, [count])
+	const handleSelectTab = (tab: TabType, path: string) => {
+		setActiveTab(tab)
+		if (window.location.pathname !== path) {
+			const spa = getPhpSpa()
+			if (spa && typeof spa.navigate === 'function') {
+				try {
+					spa.navigate(path, 'push')
+					return
+				} catch (err) {
+					console.warn('PhpSPA navigate fallback:', err)
+				}
+			}
+			window.history.pushState(null, '', path)
+		}
+	}
+
+	const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+		const id = Date.now() + Math.random()
+		setToasts(prev => [...prev, { id, message, type }])
+		setTimeout(() => {
+			setToasts(prev => prev.filter(t => t.id !== id))
+		}, 2500)
+	}
+
+	const copyToClipboard = async (text: string, label = 'Copied to clipboard!') => {
+		if (!text || text === '—') return
+		try {
+			await navigator.clipboard.writeText(text)
+			showToast(label, 'success')
+		} catch {
+			showToast('Failed to copy', 'error')
+		}
+	}
 
 	return (
-		<>
-			<section id='center'>
-				<div className='hero'>
-					<img
-						src={heroImg}
-						className='base'
-						width='170'
-						height='179'
-						alt=''
-					/>
-					<img src={reactLogo} className='framework' alt='React logo' />
-					<img src={viteLogo} className='vite' alt='Vite logo' />
-				</div>
-				<div>
-					<h1>Get started</h1>
-					<p>
-						Edit <code>src/App.tsx</code> and save to test{' '}
-						<code>HMR</code>
-					</p>
-				</div>
-				<button
-					className='counter'
-					onClick={() => setCount(count => count + 1)}>
-					Count is {count}
-				</button>
-			</section>
+		<div className="min-h-screen flex flex-col bg-zinc-950 text-zinc-100 font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
+			<ToastContainer toasts={toasts} />
+			<Header activeTab={activeTab} onSelectTab={handleSelectTab} />
 
-			<div className='ticks'></div>
+			<main className="max-w-6xl mx-auto px-5 py-8 w-full flex-1">
+				{activeTab === 'json' && <JsonFormatter showToast={showToast} copyToClipboard={copyToClipboard} />}
+				{activeTab === 'jwt' && <JwtInspector showToast={showToast} copyToClipboard={copyToClipboard} />}
+				{activeTab === 'codec' && <CodecTool showToast={showToast} copyToClipboard={copyToClipboard} />}
+				{activeTab === 'crypto' && <CryptoTool showToast={showToast} copyToClipboard={copyToClipboard} />}
+				{activeTab === 'uuid' && <UuidGenerator showToast={showToast} copyToClipboard={copyToClipboard} />}
+				{activeTab === 'timestamp' && <TimestampConverter showToast={showToast} copyToClipboard={copyToClipboard} />}
+			</main>
 
-			<section id='next-steps'>
-				<div id='docs'>
-					<svg className='icon' role='presentation' aria-hidden='true'>
-						<use href='/icons.svg#documentation-icon'></use>
-					</svg>
-					<h2>Documentation</h2>
-					<p>Your questions, answered</p>
-					<ul>
-						<li>
-							<a href='https://vite.dev/' target='_blank'>
-								<img className='logo' src={viteLogo} alt='' />
-								Explore Vite
-							</a>
-						</li>
-						<li>
-							<a href='https://react.dev/' target='_blank'>
-								<img className='button-icon' src={reactLogo} alt='' />
-								Learn more
-							</a>
-						</li>
-					</ul>
-				</div>
-				<div id='social'>
-					<svg className='icon' role='presentation' aria-hidden='true'>
-						<use href='/icons.svg#social-icon'></use>
-					</svg>
-					<h2>Connect with us</h2>
-					<p>Join the Vite community</p>
-					<ul>
-						<li>
-							<a href='https://github.com/vitejs/vite' target='_blank'>
-								<svg
-									className='button-icon'
-									role='presentation'
-									aria-hidden='true'>
-									<use href='/icons.svg#github-icon'></use>
-								</svg>
-								GitHub
-							</a>
-						</li>
-						<li>
-							<a href='https://chat.vite.dev/' target='_blank'>
-								<svg
-									className='button-icon'
-									role='presentation'
-									aria-hidden='true'>
-									<use href='/icons.svg#discord-icon'></use>
-								</svg>
-								Discord
-							</a>
-						</li>
-						<li>
-							<a href='https://x.com/vite_js' target='_blank'>
-								<svg
-									className='button-icon'
-									role='presentation'
-									aria-hidden='true'>
-									<use href='/icons.svg#x-icon'></use>
-								</svg>
-								X.com
-							</a>
-						</li>
-						<li>
-							<a
-								href='https://bsky.app/profile/vite.dev'
-								target='_blank'>
-								<svg
-									className='button-icon'
-									role='presentation'
-									aria-hidden='true'>
-									<use href='/icons.svg#bluesky-icon'></use>
-								</svg>
-								Bluesky
-							</a>
-						</li>
-					</ul>
-				</div>
-			</section>
-
-			<div className='ticks'></div>
-			<section id='spacer'></section>
-		</>
+			<Footer />
+		</div>
 	)
 }
-
-export default App

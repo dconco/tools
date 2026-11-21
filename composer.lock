@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0b73b4d97ab584556a8ca16a80a69887",
+    "content-hash": "489d794e3f993bbcadd23caa87f41bc8",
     "packages": [
         {
             "name": "dconco/phpspa",
-            "version": "v2.0.9",
+            "version": "v2.1.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dconco/phpspa.git",
-                "reference": "ca1b99d7d3af2dcb69c355e1a3df3e4be781f764"
+                "reference": "564146d471476ae2fdaec01aff36f314bb8b09c9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dconco/phpspa/zipball/ca1b99d7d3af2dcb69c355e1a3df3e4be781f764",
-                "reference": "ca1b99d7d3af2dcb69c355e1a3df3e4be781f764",
+                "url": "https://api.github.com/repos/dconco/phpspa/zipball/564146d471476ae2fdaec01aff36f314bb8b09c9",
+                "reference": "564146d471476ae2fdaec01aff36f314bb8b09c9",
                 "shasum": ""
             },
             "require": {
@@ -48,7 +48,7 @@
             "authors": [
                 {
                     "name": "Dave Conco",
-                    "email": "me@dconco.tech",
+                    "email": "me@dconco.net",
                     "homepage": "https://dconco.tech",
                     "role": "Author & Maintainer"
                 },
@@ -70,7 +70,7 @@
             ],
             "support": {
                 "issues": "https://github.com/dconco/phpspa/issues",
-                "source": "https://github.com/dconco/phpspa/tree/v2.0.9"
+                "source": "https://github.com/dconco/phpspa/tree/v2.1.9"
             },
             "funding": [
                 {
@@ -82,16 +82,16 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-04-25T19:45:11+00:00"
+            "time": "2026-11-20T21:38:55+00:00"
         }
     ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {},
-    "prefer-stable": false,
+    "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {},
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }

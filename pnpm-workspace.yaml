@@ -1,0 +1,2 @@
+minimumReleaseAgeExclude:
+  - '@dconco/phpspa@2.1.9'
